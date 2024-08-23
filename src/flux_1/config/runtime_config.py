@@ -2,12 +2,13 @@ import mlx.core as mx
 import numpy as np
 
 from flux_1.config.config import Config
+from flux_1.config.config_img2img import ConfigImg2Img
 from flux_1.config.model_config import ModelConfig
 
 
 class RuntimeConfig:
 
-    def __init__(self, config: Config, model_config: ModelConfig):
+    def __init__(self, config: Config | ConfigImg2Img, model_config: ModelConfig):
         self.config = config
         self.model_config = model_config
         self.sigmas = self._create_sigmas(config, model_config)
@@ -25,7 +26,7 @@ class RuntimeConfig:
         return self.config.guidance
 
     @property
-    def num_inference_steps(self):
+    def num_inference_steps(self) -> list:
         return self.config.num_inference_steps
 
     @property
@@ -37,15 +38,22 @@ class RuntimeConfig:
         return self.model_config.num_train_steps
 
     @staticmethod
-    def _create_sigmas(config, model):
-        sigmas = RuntimeConfig._create_sigmas_values(config.num_inference_steps)
+    def _create_sigmas(config: Config | ConfigImg2Img, model: ModelConfig) -> mx.array:
+        num_steps = RuntimeConfig._get_number_of_steps(config)
+        sigmas = RuntimeConfig._create_sigmas_values(num_steps)
         if model == ModelConfig.FLUX1_DEV:
             sigmas = RuntimeConfig._shift_sigmas(sigmas, config.width, config.height)
         return sigmas
 
     @staticmethod
-    def _create_sigmas_values(num_inference_steps: int) -> mx.array:
-        sigmas = np.linspace(1.0, 1 / num_inference_steps, num_inference_steps)
+    def _get_number_of_steps(config: Config | ConfigImg2Img) -> int:
+        if isinstance(config, ConfigImg2Img):
+            return config.num_total_denoising_steps
+        return len(config.num_inference_steps)
+
+    @staticmethod
+    def _create_sigmas_values(steps: int) -> mx.array:
+        sigmas = np.linspace(1.0, 1 / steps, steps)
         sigmas = mx.array(sigmas).astype(mx.float32)
         return mx.concatenate([sigmas, mx.zeros(1)])
 

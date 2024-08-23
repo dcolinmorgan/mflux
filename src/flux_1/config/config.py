@@ -15,9 +15,14 @@ class Config:
             height: int = 1024,
             guidance: float = 4.0,
     ):
-        if width % 16 != 0 or height % 16 != 0:
-            log.warning("Width and height should be multiples of 16. Rounding down.")
+        self._validate_input(height, width)
+
         self.width = 16 * (width // 16)
         self.height = 16 * (height // 16)
-        self.num_inference_steps = num_inference_steps
         self.guidance = guidance
+        self.num_inference_steps = list(range(num_inference_steps))
+
+    @staticmethod
+    def _validate_input(height, width) -> None:
+        if width % 16 != 0 or height % 16 != 0:
+            log.warning("Width and height should be multiples of 16. Rounding down.")

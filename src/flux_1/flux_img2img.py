@@ -3,9 +3,10 @@ import mlx.core as mx
 from PIL import Image
 from tqdm import tqdm
 
-from flux_1.config.config import Config
+from flux_1.config.config_img2img import ConfigImg2Img
 from flux_1.config.model_config import ModelConfig
 from flux_1.config.runtime_config import RuntimeConfig
+from flux_1.flux import Flux1
 from flux_1.models.text_encoder.clip_encoder.clip_encoder import CLIPEncoder
 from flux_1.models.text_encoder.t5_encoder.t5_encoder import T5Encoder
 from flux_1.models.transformer.transformer import Transformer
@@ -17,7 +18,7 @@ from flux_1.tokenizer.tokenizer_handler import TokenizerHandler
 from flux_1.weights.weight_handler import WeightHandler
 
 
-class Flux1:
+class Flux1Img2Img:
 
     def __init__(self, repo_id: str):
         self.model_config = ModelConfig.from_repo(repo_id)
@@ -35,27 +36,35 @@ class Flux1:
         self.clip_text_encoder = CLIPEncoder(weights.clip_encoder)
 
     @staticmethod
-    def from_repo(repo_id: str) -> "Flux1":
-        return Flux1(repo_id)
+    def from_repo(repo_id: str) -> "Flux1Img2Img":
+        return Flux1Img2Img(repo_id)
 
     @staticmethod
-    def from_alias(alias: str) -> "Flux1":
-        return Flux1(ModelConfig.from_alias(alias).model_name)
+    def from_alias(alias: str) -> "Flux1Img2Img":
+        return Flux1Img2Img(ModelConfig.from_alias(alias).model_name)
 
     def generate_image(
             self,
             seed: int,
             prompt: str,
-            config: Config = Config()
+            image_path: str,
+            config: ConfigImg2Img
     ) -> PIL.Image.Image:
         # Create a new runtime config based on the model type and input parameters
         config = RuntimeConfig(config, self.model_config)
 
-        # 1. Create the latents
-        latents = mx.random.normal(
-            shape=[1, (config.height // 16) * (config.width // 16), 64],
-            key=mx.random.key(seed)
-        )
+        # 0. Load the base image and let it determine the height and width for the generation
+        base_image = ImageUtil.load_image(image_path)
+        base_image = ImageUtil.to_array(base_image)
+        config.config.height = base_image.shape[2]
+        config.config.width = base_image.shape[3]
+
+        # 1. Create the latents (based on a mix of random noise and the base image)
+        image_latents = self.vae.encode(base_image)
+        image_latents = self._pack_latents(image_latents, config.height, config.width)
+        initial_noise = mx.random.normal(shape=image_latents.shape, key=mx.random.key(seed))
+        sigma = config.sigmas[config.config.init_timestep]
+        latents = sigma * initial_noise + (1.0 - sigma) * image_latents
 
         # 2. Embedd the prompt
         t5_tokens = self.t5_tokenizer.tokenize(prompt)
@@ -86,8 +95,8 @@ class Flux1:
         return ImageUtil.to_image(decoded)
 
     @staticmethod
-    def unpack_latents(latents: mx.array, height: int, width: int) -> mx.array:
-        latents = mx.reshape(latents, (1, height // 16, width // 16, 16, 2, 2))
-        latents = mx.transpose(latents, (0, 3, 1, 4, 2, 5))
-        latents = mx.reshape(latents, (1, 16, height // 16 * 2, width // 16 * 2))
+    def _pack_latents(latents: mx.array, height: int, width: int) -> mx.array:
+        latents = mx.reshape(latents, (1, 16, height // 16, 2, width // 16, 2))
+        latents = mx.transpose(latents, (0, 2, 4, 1, 3, 5))
+        latents = mx.reshape(latents, (1, (width // 16) * (height // 16), 64))
         return latents

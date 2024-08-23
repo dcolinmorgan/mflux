@@ -47,7 +47,6 @@ class ImageUtil:
 
     @staticmethod
     def to_array(image: PIL.Image.Image) -> mx.array:
-        image = ImageUtil.resize(image)
         image = ImageUtil._pil_to_numpy(image)
         array = mx.array(image)
         array = mx.transpose(array, (0, 3, 1, 2))
@@ -55,12 +54,11 @@ class ImageUtil:
         return array
 
     @staticmethod
-    def resize(image):
-        image = image.resize((1024, 1024), resample=PIL.Image.LANCZOS)
-        return image
+    def load_image(path: str) -> PIL.Image.Image:
+        return Image.open(path)
 
     @staticmethod
-    def save_image(image: Image.Image, path: str) -> None:
+    def save_image(image: PIL.Image.Image, path: str) -> None:
         file_path = Path(path)
         file_path.parent.mkdir(parents=True, exist_ok=True)
         file_name = file_path.stem
