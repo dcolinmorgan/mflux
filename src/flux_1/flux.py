@@ -42,24 +42,29 @@ class Flux1:
     def from_alias(alias: str) -> "Flux1":
         return Flux1(ModelConfig.from_alias(alias).model_name)
 
-    def generate_image(self, seed: int, prompt: str, config: Config = Config()) -> PIL.Image.Image:
+    def generate_image(
+            self,
+            seed: int,
+            prompt: str,
+            config: Config = Config()
+    ) -> PIL.Image.Image:
         # Create a new runtime config based on the model type and input parameters
         config = RuntimeConfig(config, self.model_config)
 
-        # Create the latents
+        # 1. Create the latents
         latents = mx.random.normal(
             shape=[1, (config.height // 16) * (config.width // 16), 64],
             key=mx.random.key(seed)
         )
 
-        # Embedd the prompt
+        # 2. Embedd the prompt
         t5_tokens = self.t5_tokenizer.tokenize(prompt)
         clip_tokens = self.clip_tokenizer.tokenize(prompt)
         prompt_embeds = self.t5_text_encoder.forward(t5_tokens)
         pooled_prompt_embeds = self.clip_text_encoder.forward(clip_tokens)
 
-        for t in tqdm(range(config.num_inference_steps)):
-            # Predict the noise
+        for t in tqdm(config.num_inference_steps, desc="Generating image", unit="step"):
+            # 3.t Predict the noise
             noise = self.transformer.predict(
                 t=t,
                 prompt_embeds=prompt_embeds,
@@ -68,14 +73,14 @@ class Flux1:
                 config=config,
             )
 
-            # Take one denoise step
+            # 4.t Take one denoise step
             dt = config.sigmas[t + 1] - config.sigmas[t]
             latents += noise * dt
 
             # To enable progress tracking
             mx.eval(latents)
 
-        # Decode the latent array
+        # 5. Decode the latent array
         latents = Flux1._unpack_latents(latents, config.height, config.width)
         decoded = self.vae.decode(latents)
         return ImageUtil.to_image(decoded)
@@ -86,11 +91,3 @@ class Flux1:
         latents = mx.transpose(latents, (0, 3, 1, 4, 2, 5))
         latents = mx.reshape(latents, (1, 16, height // 16 * 2, width // 16 * 2))
         return latents
-
-    def encode(self, path: str) -> mx.array:
-        array = ImageUtil.to_array(Image.open(path))
-        return self.vae.encode(array)
-
-    def decode(self, code: mx.array) -> PIL.Image.Image:
-        decoded = self.vae.decode(code)
-        return ImageUtil.to_image(decoded)
