@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name="mflux",
-    version="0.1.6",
+    version="0.1.7",
     author="Filip Strand",
     author_email="strand.filip@gmail.com",
     description="A MLX port of FLUX based on the Huggingface Diffusers implementation.",
@@ -17,14 +17,14 @@ setup(
     ],
     python_requires='>=3.11',
     install_requires=[
-        'mlx>=0.16.0',
-        'numpy>=2.0.0',
-        'pillow>=10.4.0',
-        'transformers>=4.44.0',
-        'sentencepiece>=0.2.0',
-        'torch>=2.3.1',
-        'tqdm>=4.66.5',
-        'huggingface-hub>=0.24.5',
-        'safetensors>=0.4.4',
+        'mlx~=0.16.0',
+        'numpy~=2.0.0',
+        'pillow~=10.4.0',
+        'transformers~=4.44.0',
+        'sentencepiece~=0.2.0',
+        'torch~=2.3.1',
+        'tqdm~=4.66.5',
+        'huggingface-hub~=0.24.5',
+        'safetensors~=0.4.4',
     ],
 )
