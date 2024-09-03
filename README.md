@@ -37,7 +37,7 @@ like [Numpy](https://numpy.org) and [Pillow](https://pypi.org/project/pillow/) f
    ```
 ### Generating an image
 
-Run the provided [main.py](src/main.py) by specifying a prompt and some optional arguments like so using the `schnell` model:
+Run the provided [main.py](src/flux_1/run.py) by specifying a prompt and some optional arguments like so using the `schnell` model:
 
 ```
 python main.py --model schnell --prompt "Luxury food photograph" --steps 2 --seed 2
