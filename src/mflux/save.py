@@ -2,9 +2,10 @@ import argparse
 import os
 import sys
 
+
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), 'src')))
 
-from mflux.flux import Flux1
+from mflux.flux.flux import Flux1
 from mflux.config.model_config import ModelConfig
 
 
