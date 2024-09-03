@@ -108,8 +108,8 @@ class Flux1:
         return latents
 
     @staticmethod
-    def from_alias(alias: str) -> "Flux1":
-        return Flux1(ModelConfig.from_alias(alias))
+    def from_alias(alias: str, quantization: int | None = None) -> "Flux1":
+        return Flux1(model_config=ModelConfig.from_alias(alias), quantize_full_weights=quantization)
 
     def _set_model_weights(self, weights):
         self.vae.update(weights.vae)

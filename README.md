@@ -96,7 +96,7 @@ from mflux.config.config import Config
 from mflux.flux.flux import Flux1
 from mflux.post_processing.image_util import ImageUtil
 
-flux = Flux1.from_alias(alias="schnell")  # "schnell" or "dev"
+flux = Flux1.from_alias(alias="schnell", quantization=8)  # "schnell" or "dev"
 
 image = flux.generate_image(
    seed=2,
