@@ -23,18 +23,23 @@ like [Numpy](https://numpy.org) and [Pillow](https://pypi.org/project/pillow/) f
 - [x] FLUX.1-Dev
 
 ### Installation
-1. Clone the repo:
-    ```
-    git clone git@github.com:filipstrand/mflux.git
-    ```
-2. Navigate to the project and set up a virtual environment:
+   For users, the easiest way to install MFLUX is via pip:
    ```
-   cd mflux && python3 -m venv .venv && source .venv/bin/activate
-   ``` 
-3. Install the required dependencies:
-    ```
-   pip install -r requirements.txt
+   pip install mflux
    ```
+   Optionally, contributors may install it like so:
+   1. Clone the repo:
+       ```
+       git clone git@github.com:filipstrand/mflux.git
+       ```
+   2. Navigate to the project and set up a virtual environment:
+      ```
+      cd mflux && python3 -m venv .venv && source .venv/bin/activate
+      ``` 
+   3. Install the required dependencies:
+       ```
+      pip install -r requirements.txt
+      ```   
 ### Generating an image
 
 Run the provided [main.py](src/mflux/run.py) by specifying a prompt and some optional arguments like so using the `schnell` model:
@@ -87,23 +92,19 @@ python main.py --model dev --prompt "Luxury food photograph" --steps 25 --seed 2
 Or make a new separate script like the following
 
 ```python
-import sys
-
-sys.path.append("/path/to/mflux/src")
-
 from mflux.config.config import Config
-from mflux.flux import Flux1
+from mflux.flux.flux import Flux1
 from mflux.post_processing.image_util import ImageUtil
 
 flux = Flux1.from_alias(alias="schnell")  # "schnell" or "dev"
 
 image = flux.generate_image(
-   seed=3,
-   prompt="Luxury food photograph of a birthday cake. In the middle it has three candles shaped like letters spelling the word 'MLX'. It has perfect lighting and a cozy background with big bokeh and shallow depth of field. The mood is a sunset balcony in tuscany. The photo is taken from the side of the cake. The scene is complemented by a warm, inviting light that highlights the textures and colors of the ingredients, giving it an appetizing and elegant look.",
+   seed=2,
+   prompt="Luxury food photograph",
    config=Config(
-      num_inference_steps=2,  # Schnell works well with 2-4 steps, Dev works well with 20-25 steps
-      height=768,
-      width=1360,
+      num_inference_steps=2,  # "schnell" works well with 2-4 steps, "dev" works well with 20-25 steps
+      height=1024,
+      width=1024,
    )
 )
 
