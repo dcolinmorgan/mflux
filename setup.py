@@ -2,14 +2,15 @@ from setuptools import setup, find_packages
 
 setup(
     name="mflux",
-    version="0.1.1",
+    version="0.1.2",
     author="Filip Strand",
     author_email="strand.filip@gmail.com",
     description="A MLX port of FLUX based on the Huggingface Diffusers implementation.",
     long_description=open('README.md').read(),
     long_description_content_type="text/markdown",
     url="https://github.com/filipstrand/mflux",
-    packages=find_packages(),
+    packages=find_packages(where="src"),
+    package_dir={"": "src"},
     classifiers=[
         "Programming Language :: Python :: 3",
         "Operating System :: MacOS",
