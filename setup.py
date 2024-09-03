@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name="mflux",
-    version="0.1.6",
+    version="0.1.8",
     author="Filip Strand",
     author_email="strand.filip@gmail.com",
     description="A MLX port of FLUX based on the Huggingface Diffusers implementation.",
