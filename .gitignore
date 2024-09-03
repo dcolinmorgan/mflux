@@ -11,3 +11,10 @@
 *.png
 *.jpg
 *.pyc
+/src/mflux.egg-info/dependency_links.txt
+*.tar.gz
+*.whl
+/src/mflux.egg-info/PKG-INFO
+/src/mflux.egg-info/requires.txt
+/src/mflux.egg-info/SOURCES.txt
+/src/mflux.egg-info/top_level.txt
