@@ -1,5 +1,5 @@
 import logging
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, List, Optional, Union
 
 import mlx.core as mx
 from mlx import nn
@@ -28,18 +28,19 @@ if TYPE_CHECKING:
 
 log = logging.getLogger(__name__)
 
-CONTROLNET_ID = "InstantX/FLUX.1-dev-Controlnet-Canny"
+# CONTROLNET_ID = "InstantX/FLUX.1-dev-Controlnet-Canny"
+CONTROLNET_ID2 = "InstantX/FLUX.1-dev-Controlnet-Union"
 
 
 class Flux1Controlnet:
     def __init__(
         self,
         model_config: ModelConfig,
-        quantize: int | None = None,
-        local_path: str | None = None,
-        lora_paths: list[str] | None = None,
-        lora_scales: list[float] | None = None,
-        controlnet_path: str | None = None,
+        quantize: Optional[int] = None,
+        local_path: Optional[str] = None,
+        lora_paths: Optional[List[str]] = None,
+        lora_scales: Optional[List[float]] = None,
+        controlnet_path: Optional[str] = None,
     ):
         self.lora_paths = lora_paths
         self.lora_scales = lora_scales
@@ -113,23 +114,24 @@ class Flux1Controlnet:
             config: ConfigControlnet = ConfigControlnet()
     ) -> "GeneratedImage":  # fmt: off
         # Create a new runtime config based on the model type and input parameters
-        config = RuntimeConfig(config, self.model_config)
-        time_steps = tqdm(range(config.num_inference_steps))
+        runtime_config = RuntimeConfig(config, self.model_config)
+        time_steps = tqdm(range(runtime_config.num_inference_steps))
 
         # Embedd the controlnet reference image
         control_image = ImageUtil.load_image(controlnet_image_path)
-        control_image = ControlnetUtil.scale_image(config.height, config.width, control_image)
-        control_image = ControlnetUtil.preprocess_canny(control_image)
+        control_image = ControlnetUtil.scale_image(runtime_config.height, runtime_config.width, control_image)
+        # control_image = ControlnetUtil.preprocess_canny(control_image)
+        control_image = ControlnetUtil.preprocess_pose(control_image)
         if controlnet_save_canny:
             ControlnetUtil.save_canny_image(control_image, output)
         controlnet_cond = ImageUtil.to_array(control_image)
         controlnet_cond = self.vae.encode(controlnet_cond)
         controlnet_cond = (controlnet_cond / self.vae.scaling_factor) + self.vae.shift_factor
-        controlnet_cond = Flux1Controlnet._pack_latents(controlnet_cond, config.height, config.width)
+        controlnet_cond = Flux1Controlnet._pack_latents(controlnet_cond, runtime_config.height, runtime_config.width)
 
         # 1. Create the initial latents
         latents = mx.random.normal(
-            shape=[1, (config.height // 16) * (config.width // 16), 64],
+            shape=[1, (runtime_config.height // 16) * (runtime_config.width // 16), 64],
             key=mx.random.key(seed)
         )  # fmt: off
 
@@ -147,7 +149,7 @@ class Flux1Controlnet:
                 pooled_prompt_embeds=pooled_prompt_embeds,
                 hidden_states=latents,
                 controlnet_cond=controlnet_cond,
-                config=config,
+                config=runtime_config,
             )
 
             # 3.t Predict the noise
@@ -156,20 +158,20 @@ class Flux1Controlnet:
                 prompt_embeds=prompt_embeds,
                 pooled_prompt_embeds=pooled_prompt_embeds,
                 hidden_states=latents,
-                config=config,
+                config=runtime_config,
                 controlnet_block_samples=controlnet_block_samples,
                 controlnet_single_block_samples=controlnet_single_block_samples,
             )
 
             # 4.t Take one denoise step
-            dt = config.sigmas[t + 1] - config.sigmas[t]
+            dt = runtime_config.sigmas[t + 1] - runtime_config.sigmas[t]
             latents += noise * dt
 
             # Evaluate to enable progress tracking
             mx.eval(latents)
 
         # 5. Decode the latent array and return the image
-        latents = Flux1Controlnet._unpack_latents(latents, config.height, config.width)
+        latents = Flux1Controlnet._unpack_latents(latents, runtime_config.height, runtime_config.width)
         decoded = self.vae.decode(latents)
         return ImageUtil.to_image(
             decoded_latents=decoded,
@@ -179,7 +181,7 @@ class Flux1Controlnet:
             generation_time=time_steps.format_dict["elapsed"],
             lora_paths=self.lora_paths,
             lora_scales=self.lora_scales,
-            config=config,
+            config=runtime_config,
             controlnet_image_path=controlnet_image_path,
         )
 

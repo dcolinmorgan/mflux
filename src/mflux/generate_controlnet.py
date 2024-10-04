@@ -10,13 +10,14 @@ def main():
     parser.add_argument("--prompt", type=str, required=True, help="The textual description of the image to generate.")
     parser.add_argument("--controlnet-image-path", type=str, required=True, help="Local path of the image to use as input for controlnet.")
     parser.add_argument("--controlnet-strength", type=float, default=0.4, help="Controls how strongly the control image influences the output image. A value of 0.0 means no influence. (Default is 0.4)")
-    parser.add_argument("--controlnet-save-canny", action="store_true", help="If set, save the Canny edge detection reference input image.")
+    # parser.add_argument("--controlnet-save-canny", action="store_true", help="If set, save the Canny edge detection reference input image.")
     parser.add_argument("--output", type=str, default="image.png", help="The filename for the output image. Default is \"image.png\".")
     parser.add_argument("--model", "-m", type=str, required=True, choices=["dev", "schnell"], help="The model to use (\"schnell\" or \"dev\").")
     parser.add_argument("--seed", type=int, default=None, help="Entropy Seed (Default is time-based random-seed)")
     parser.add_argument("--height", type=int, default=1024, help="Image height (Default is 1024)")
     parser.add_argument("--width", type=int, default=1024, help="Image width (Default is 1024)")
     parser.add_argument("--steps", type=int, default=None, help="Inference Steps")
+    parser.add_argument("--control-mode", type=str, default="4", help="The controlnet mode (0-6).")
     parser.add_argument("--guidance", type=float, default=3.5, help="Guidance Scale (Default is 3.5)")
     parser.add_argument("--quantize",  "-q", type=int, choices=[4, 8], default=None, help="Quantize the model (4 or 8, Default is None)")
     parser.add_argument("--path", type=str, default=None, help="Local path for loading a model from disk")
@@ -55,6 +56,7 @@ def main():
             width=args.width,
             guidance=args.guidance,
             controlnet_strength=args.controlnet_strength,
+            control_mode=args.control_mode,
         ),
     )
 
