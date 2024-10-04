@@ -10,3 +10,6 @@ mflux-generate-controlnet \
   --controlnet-image-path "/Users/apple/WRK/ComfyUI/input/orig/p09.jpg" \
   --controlnet-strength 0.5 \
   --control-mode 4
+
+# pip install .
+# bash test.sh

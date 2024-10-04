@@ -49,7 +49,6 @@ def main():
         prompt=args.prompt,
         output=args.output,
         controlnet_image_path=args.controlnet_image_path,
-        controlnet_save_canny=args.controlnet_save_canny,
         config=ConfigControlnet(
             num_inference_steps=args.steps,
             height=args.height,

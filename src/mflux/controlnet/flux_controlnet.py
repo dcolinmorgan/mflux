@@ -29,7 +29,7 @@ if TYPE_CHECKING:
 log = logging.getLogger(__name__)
 
 # CONTROLNET_ID = "InstantX/FLUX.1-dev-Controlnet-Canny"
-CONTROLNET_ID2 = "InstantX/FLUX.1-dev-Controlnet-Union"
+CONTROLNET_ID = "InstantX/FLUX.1-dev-Controlnet-Union"
 
 
 class Flux1Controlnet:

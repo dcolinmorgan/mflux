@@ -41,7 +41,10 @@ class ControlnetUtil:
     def preprocess_pose(img: Image.Image) -> Image.Image:
         image_to_pose = np.array(img)
         image_to_pose = openpose(image_to_pose)
-        image_to_pose = np.array(image_to_pose)[:, :, None]
+        # Ensure the output is in the correct shape and type
+        image_to_pose = np.squeeze(image_to_pose)  # Remove single-dimensional entries
+        image_to_pose = np.clip(image_to_pose, 0, 255).astype(np.uint8)  # Ensure values are in the correct range and type
+        image_to_pose = image_to_pose[:, :, None]  # Add channel dimension if necessary
         image_to_pose = np.concatenate([image_to_pose, image_to_pose, image_to_pose], axis=2)
         return Image.fromarray(image_to_pose)
     
